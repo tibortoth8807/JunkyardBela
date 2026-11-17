@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1c1a17" />
+    <title>Bontó Béla – E39 bontás</title>
+    <meta name="description" content="Szedj szét egy öreg E39 Touringot alkatrészenként Bontó Béla telepén. Rajongói minijáték." />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <h1><span data-i18n="title"></span> <span class="sub" data-i18n="subtitle"></span></h1>
+        <div class="topbar-right">
+          <div class="langs" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-lang="hu">HU</button><button type="button" class="lang-btn" data-lang="en">EN</button><button type="button" class="lang-btn" data-lang="de">DE</button>
+          </div>
+          <button type="button" class="icon-btn" id="btn-sound">🔊</button>
+        </div>
+      </header>
+
+      <div class="stage" id="stage">
+        <canvas id="game" aria-label="Játéktér"></canvas>
+        <div class="hud-left"><span id="timer">00:00</span><span id="count"></span></div>
+        <div class="money" id="money">00000000 Ft</div>
+        <div class="bubble" id="bubble"></div>
+        <div class="tip" id="tip"></div>
+        <div class="toast" id="toast" role="status"></div>
+        <div class="banner" id="banner"><div class="banner-main" id="banner-main"></div><div class="banner-sub" id="banner-sub"></div></div>
+      </div>
+
+      <section class="panel">
+        <p class="hint" id="hint"></p>
+        <div class="controls">
+          <button type="button" class="ctl press" id="btn-press" disabled></button>
+          <button type="button" class="ctl" id="btn-restart"></button>
+        </div>
+      </section>
+
+      <footer class="footer" data-i18n="footer"></footer>
+    </div>
+
+    <div class="overlay" id="title-screen">
+      <div class="card">
+        <div class="langs card-langs" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="hu">Magyar</button><button type="button" class="lang-btn" data-lang="en">English</button><button type="button" class="lang-btn" data-lang="de">Deutsch</button>
+        </div>
+        <div class="card-art">🔧🚗💰</div>
+        <h2 data-i18n="docTitle"></h2>
+        <p data-i18n="intro"></p>
+        <p class="rules" data-i18n="rules"></p>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="btn-start" data-i18n="start"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay hidden" id="result-screen">
+      <div class="card">
+        <div class="card-art">🗜️💰</div>
+        <h2 data-i18n="resultTitle"></h2>
+        <p id="result-text"></p>
+        <p class="rating" id="result-rating"></p>
+        <pre class="share" id="share-text"></pre>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="btn-share" data-i18n="share"></button>
+          <button type="button" class="btn" id="btn-again" data-i18n="again"></button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
