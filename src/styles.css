@@ -88,3 +88,9 @@ button { font: inherit; cursor: pointer; }
   .card-art { font-size: 1.8rem; }
   .card p { margin: 6px 0; }
 }
+
+.label { font-weight: 700; margin: 12px 0 6px; }
+.body-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.body-btn { padding: 10px 8px; border-radius: 12px; border: 2px solid #cfc7b8; background: #fff; color: #231f1a; font-weight: 700; display: grid; gap: 2px; justify-items: center; }
+.body-btn .body-icon { font-size: 1.5rem; }
+.body-btn.active { border-color: var(--red); background: #fbeae6; }

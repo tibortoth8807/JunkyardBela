@@ -59,13 +59,26 @@ function outline(ctx: Ctx, path: Path2D, color = 'rgba(0,0,0,0.45)', width = 1.5
 
 // ------------------------------------------------------------------ fixed body
 
-const BODY_PATH = poly(
-  'M150,455 L147,412 Q148,394 168,389 L360,368 L456,294 Q468,286 490,285 L820,284 Q852,286 864,302 L879,380 L883,455 Q883,466 872,466 L160,466 Q150,466 150,455 Z',
-);
-const FRONT_OPENING = poly('M362,380 L456,298 L574,296 L576,462 L372,462 Q366,420 362,380 Z');
-const REAR_OPENING = poly('M578,296 L696,294 L702,378 L688,404 Q660,420 654,462 L578,462 Z');
-const BAY = poly('M172,401 L362,381 L362,446 L178,446 Z');
-const QUARTER_WINDOW = poly('M700,298 L760,294 L760,376 L705,376 Z');
+export type BodyStyle = 'sedan' | 'touring';
+
+// Late-90s executive saloon/estate proportions: long sloping bonnet, low nose, raked
+// windscreen, and the side window ending in a forward kink at the C pillar.
+const BODY_PATHS: Record<BodyStyle, Path2D> = {
+  sedan: poly(
+    'M150,458 L148,430 Q148,416 158,411 Q210,397 367,382 L472,304 Q530,284 610,282 L650,282 Q690,284 718,300 L784,366 L860,370 Q876,372 878,386 L881,458 Q881,466 871,466 L160,466 Q150,466 150,458 Z',
+  ),
+  touring: poly(
+    'M150,458 L148,430 Q148,416 158,411 Q210,397 367,382 L472,304 Q530,284 610,282 L812,284 Q846,288 858,304 L878,384 L881,458 Q881,466 871,466 L160,466 Q150,466 150,458 Z',
+  ),
+};
+const QUARTER_WINDOWS: Record<BodyStyle, Path2D> = {
+  sedan: poly('M692,306 L712,306 Q736,330 748,360 L736,384 L692,384 Z'),
+  touring: poly('M692,306 L808,292 Q832,294 840,310 L850,362 L836,384 L692,384 Z'),
+};
+let bodyStyle: BodyStyle = 'touring';
+const FRONT_OPENING = poly('M372,386 L470,306 L574,302 L576,464 L380,464 Q372,430 372,386 Z');
+const REAR_OPENING = poly('M578,302 L686,302 L690,384 L684,404 Q656,420 652,464 L578,464 Z');
+const BAY = poly('M160,412 Q214,404 369,393 L369,446 L176,446 Z');
 
 export const WHEEL_X = { front: 280, rear: 710 };
 export const WHEEL_Y = 452;
@@ -143,164 +156,178 @@ function crack(ctx: Ctx, x: number, y: number, size: number): void {
   }
 }
 
+const TAILGATE_TOURING: PartGfx = (() => {
+  const path = poly('M846,292 Q858,296 864,310 L880,386 L866,388 L852,322 Q848,304 840,298 Z');
+  return {
+    id: 'tailgate' as PartId,
+    path,
+    center: [862, 345] as [number, number],
+    draw(ctx: Ctx) {
+      fill(ctx, path, paint(ctx));
+      outline(ctx, path);
+      fill(ctx, poly('M850,300 Q858,304 861,314 L866,340 L858,340 L852,312 Z'), GLASS);
+    },
+  };
+})();
+
+const TRUNK_LID: PartGfx = (() => {
+  const path = poly('M778,362 L860,366 Q876,368 878,384 L876,390 L784,386 Z');
+  return {
+    id: 'tailgate' as PartId,
+    path,
+    center: [830, 377] as [number, number],
+    draw(ctx: Ctx) {
+      fill(ctx, path, paint(ctx, 362, 392));
+      outline(ctx, path);
+      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(786, 366);
+      ctx.lineTo(866, 370);
+      ctx.stroke();
+    },
+  };
+})();
+
+/** Switches between saloon and estate (changes the shell, the rear windows and the boot lid). */
+export function setBodyStyle(style: BodyStyle): void {
+  bodyStyle = style;
+  PART_GFX.tailgate = style === 'sedan' ? TRUNK_LID : TAILGATE_TOURING;
+}
+
 export const PART_GFX: Record<PartId, PartGfx> = {
   wheelFront: wheelGfx('wheelFront', WHEEL_X.front),
   wheelRear: wheelGfx('wheelRear', WHEEL_X.rear),
 
   frontDoor: (() => {
     const path = FRONT_OPENING;
-    const window = poly('M378,378 L458,304 L566,302 L566,378 Z');
+    const window = poly('M386,384 L470,312 L566,308 L566,384 Z');
     return {
       id: 'frontDoor' as PartId,
       path,
-      center: [480, 390] as [number, number],
+      center: [480, 400] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, paint(ctx));
         glassWindow(ctx, window, 520);
         outline(ctx, path);
-        fill(ctx, rr(536, 392, 24, 6, 3), '#9aa2a8');
-        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-        ctx.beginPath();
-        ctx.moveTo(368, 420);
-        ctx.lineTo(574, 418);
-        ctx.stroke();
+        fill(ctx, rr(536, 396, 24, 5, 2), '#b9c0c6');
+        fill(ctx, poly('M380,424 L576,423 L576,431 L382,432 Z'), '#141617');
       },
     };
   })(),
 
   rearDoor: (() => {
     const path = REAR_OPENING;
-    const window = poly('M586,302 L690,300 L694,378 L586,378 Z');
+    const window = poly('M586,308 L684,306 L686,384 L586,384 Z');
     return {
       id: 'rearDoor' as PartId,
       path,
-      center: [630, 390] as [number, number],
+      center: [625, 400] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, paint(ctx));
-        glassWindow(ctx, window, 660);
+        glassWindow(ctx, window, 650);
         outline(ctx, path);
-        fill(ctx, rr(646, 392, 22, 6, 3), '#9aa2a8');
-        ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-        ctx.beginPath();
-        ctx.moveTo(580, 418);
-        ctx.lineTo(680, 416);
-        ctx.stroke();
+        fill(ctx, rr(648, 396, 22, 5, 2), '#b9c0c6');
+        fill(ctx, poly('M578,423 L668,422 L662,430 L578,431 Z'), '#141617');
       },
     };
   })(),
 
   hood: (() => {
-    const path = poly('M168,389 L360,368 L363,382 L172,402 Z');
+    const path = poly('M158,409 Q210,397 367,382 L369,393 Q214,404 160,412 Z');
     return {
       id: 'hood' as PartId,
       path,
-      center: [265, 386] as [number, number],
+      center: [262, 398] as [number, number],
       draw(ctx: Ctx) {
-        fill(ctx, path, paint(ctx, 368, 402));
+        fill(ctx, path, paint(ctx, 380, 422));
         outline(ctx, path);
-        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(178, 391);
-        ctx.lineTo(352, 372);
+        ctx.moveTo(166, 410);
+        ctx.quadraticCurveTo(220, 399, 360, 385);
         ctx.stroke();
       },
     };
   })(),
 
-  tailgate: (() => {
-    const path = poly('M760,290 L820,284 Q852,286 864,302 L879,382 L760,382 Z');
-    const glass = poly('M768,297 L818,292 Q842,294 852,307 L864,374 L768,374 Z');
-    return {
-      id: 'tailgate' as PartId,
-      path,
-      center: [815, 335] as [number, number],
-      draw(ctx: Ctx) {
-        fill(ctx, path, paint(ctx));
-        glassWindow(ctx, glass, 830);
-        outline(ctx, path);
-        ctx.strokeStyle = '#111';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(862, 366);
-        ctx.lineTo(842, 336);
-        ctx.stroke();
-      },
-    };
-  })(),
+  tailgate: TAILGATE_TOURING,
 
   mirror: (() => {
-    const path = poly('M354,352 L384,349 L387,368 L359,371 Z');
+    const path = poly('M374,366 L400,362 L402,381 L378,384 Z');
     return {
       id: 'mirror' as PartId,
       path,
-      center: [371, 360] as [number, number],
+      center: [388, 373] as [number, number],
       draw(ctx: Ctx, broken: boolean) {
-        fill(ctx, path, paint(ctx, 349, 371));
+        fill(ctx, path, paint(ctx, 362, 384));
         outline(ctx, path);
-        fill(ctx, rr(357, 354, 8, 13, 2), '#a9c0cf');
-        if (broken) crack(ctx, 361, 360, 7);
+        fill(ctx, rr(377, 368, 8, 12, 2), '#a9c0cf');
+        if (broken) crack(ctx, 381, 374, 7);
       },
     };
   })(),
 
   headlight: (() => {
-    const path = rr(150, 393, 42, 16, 5);
+    // the typical quad round lamps behind one wide lens, wrapping round the corner
+    const path = poly('M152,417 L204,408 L206,421 L156,428 Z');
     return {
       id: 'headlight' as PartId,
       path,
-      center: [171, 401] as [number, number],
+      center: [178, 419] as [number, number],
       draw(ctx: Ctx, broken: boolean) {
-        fill(ctx, path, '#1d2024');
-        for (const x of [161, 180]) {
-          circle(ctx, x, 401, 6.5, '#e9eff3');
-          circle(ctx, x, 401, 3, '#fff8d6');
+        fill(ctx, path, '#1d2125');
+        for (const [x, y] of [[164, 421], [180, 419], [195, 416]] as [number, number][]) {
+          circle(ctx, x, y, 5.2, '#e9eff3');
+          circle(ctx, x, y, 2.4, '#fff8d6');
         }
-        fill(ctx, rr(152, 395, 38, 4, 2), 'rgba(255,255,255,0.35)');
-        if (broken) crack(ctx, 170, 401, 12);
+        fill(ctx, poly('M154,418 L203,409 L204,412 L155,421 Z'), 'rgba(255,255,255,0.35)');
+        fill(ctx, poly('M196,424 L205,422 L205,426 L197,428 Z'), '#e88a1a');
+        if (broken) crack(ctx, 178, 419, 12);
       },
     };
   })(),
 
   taillight: (() => {
-    const path = poly('M864,386 L880,386 L884,421 L867,421 Z');
+    const path = poly('M826,384 L876,382 L878,400 L830,402 Z');
     return {
       id: 'taillight' as PartId,
       path,
-      center: [874, 404] as [number, number],
+      center: [852, 392] as [number, number],
       draw(ctx: Ctx, broken: boolean) {
         fill(ctx, path, '#b3121f');
-        fill(ctx, poly('M866,404 L882,404 L884,421 L867,421 Z'), '#e88a1a');
-        fill(ctx, poly('M866,389 L878,389 L879,395 L866,395 Z'), 'rgba(255,255,255,0.35)');
-        if (broken) crack(ctx, 873, 404, 9);
+        fill(ctx, poly('M850,383 L863,383 L864,401 L851,401 Z'), '#e88a1a');
+        fill(ctx, poly('M828,385 L874,384 L874,388 L829,389 Z'), 'rgba(255,255,255,0.3)');
+        if (broken) crack(ctx, 852, 392, 9);
       },
     };
   })(),
 
   frontBumper: (() => {
-    const path = poly('M147,424 L212,428 L214,470 L156,470 Q146,458 147,424 Z');
+    const path = poly('M148,431 L216,426 L218,470 L156,470 Q146,458 148,431 Z');
     return {
       id: 'frontBumper' as PartId,
       path,
-      center: [180, 448] as [number, number],
+      center: [182, 448] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, paint(ctx, 424, 470));
-        fill(ctx, rr(148, 438, 64, 7, 2), '#5d6166');
-        fill(ctx, rr(160, 454, 44, 9, 3), '#111214');
+        fill(ctx, rr(148, 437, 70, 7, 2), '#141617');
+        fill(ctx, rr(160, 454, 46, 8, 3), '#111214');
         outline(ctx, path);
       },
     };
   })(),
 
   rearBumper: (() => {
-    const path = poly('M834,424 L884,422 L888,470 L844,470 Z');
+    const path = poly('M834,418 L880,416 L883,470 L844,470 Z');
     return {
       id: 'rearBumper' as PartId,
       path,
-      center: [862, 446] as [number, number],
+      center: [860, 444] as [number, number],
       draw(ctx: Ctx) {
-        fill(ctx, path, paint(ctx, 422, 470));
-        fill(ctx, rr(836, 436, 51, 7, 2), '#5d6166');
+        fill(ctx, path, paint(ctx, 416, 470));
+        fill(ctx, rr(836, 428, 47, 7, 2), '#141617');
         outline(ctx, path);
       },
     };
@@ -351,35 +378,35 @@ export const PART_GFX: Record<PartId, PartGfx> = {
   })(),
 
   battery: (() => {
-    const path = rr(318, 387, 38, 27, 3);
+    const path = rr(320, 398, 36, 25, 3);
     return {
       id: 'battery' as PartId,
       path,
-      center: [337, 400] as [number, number],
+      center: [338, 410] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, '#1b1c1f');
-        fill(ctx, rr(318, 387, 38, 6, 2), '#2d2f33');
-        fill(ctx, rr(322, 383, 7, 5, 1), '#c0392b');
-        fill(ctx, rr(345, 383, 7, 5, 1), '#2c3e50');
-        fill(ctx, rr(323, 398, 28, 9, 2), '#3a7bd5');
+        fill(ctx, rr(320, 398, 36, 6, 2), '#2d2f33');
+        fill(ctx, rr(324, 394, 7, 5, 1), '#c0392b');
+        fill(ctx, rr(345, 394, 7, 5, 1), '#2c3e50');
+        fill(ctx, rr(325, 408, 26, 9, 2), '#3a7bd5');
       },
     };
   })(),
 
   radiator: (() => {
-    const path = rr(178, 403, 17, 42, 2);
+    const path = rr(176, 418, 17, 28, 2);
     return {
       id: 'radiator' as PartId,
       path,
-      center: [186, 424] as [number, number],
+      center: [184, 432] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, '#8f969d');
         ctx.strokeStyle = 'rgba(0,0,0,0.35)';
         ctx.lineWidth = 1;
-        for (let y = 406; y < 444; y += 4) {
+        for (let y = 421; y < 445; y += 4) {
           ctx.beginPath();
-          ctx.moveTo(179, y);
-          ctx.lineTo(194, y);
+          ctx.moveTo(177, y);
+          ctx.lineTo(192, y);
           ctx.stroke();
         }
       },
@@ -388,37 +415,37 @@ export const PART_GFX: Record<PartId, PartGfx> = {
 
   engine: (() => {
     const path = new Path2D();
-    path.roundRect(205, 398, 108, 47, 6);
-    path.roundRect(212, 389, 94, 12, 4);
+    path.roundRect(205, 412, 108, 34, 6);
+    path.roundRect(212, 404, 94, 10, 4);
     return {
       id: 'engine' as PartId,
       path,
-      center: [259, 418] as [number, number],
+      center: [259, 428] as [number, number],
       draw(ctx: Ctx) {
-        fill(ctx, rr(205, 398, 108, 47, 6), '#5f666d');
-        fill(ctx, rr(212, 389, 94, 12, 4), '#b9bfc5');
+        fill(ctx, rr(205, 412, 108, 34, 6), '#5f666d');
+        fill(ctx, rr(212, 404, 94, 10, 4), '#b9bfc5');
         ctx.fillStyle = '#3b4046';
-        for (let i = 0; i < 6; i++) ctx.fillRect(218 + i * 15, 403, 9, 16);
-        fill(ctx, rr(212, 426, 94, 12, 4), '#4a5056');
-        circle(ctx, 300, 432, 9, '#2b2f34');
-        circle(ctx, 300, 432, 4, '#8a9096');
+        for (let i = 0; i < 6; i++) ctx.fillRect(218 + i * 15, 416, 9, 12);
+        fill(ctx, rr(212, 432, 94, 10, 4), '#4a5056');
+        circle(ctx, 300, 437, 7, '#2b2f34');
+        circle(ctx, 300, 437, 3, '#8a9096');
       },
     };
   })(),
 
   gearbox: (() => {
-    const path = poly('M296,414 L356,418 L360,446 L300,446 Z');
+    const path = poly('M298,422 L358,420 L362,446 L302,446 Z');
     return {
       id: 'gearbox' as PartId,
       path,
-      center: [328, 430] as [number, number],
+      center: [330, 434] as [number, number],
       draw(ctx: Ctx) {
         fill(ctx, path, '#8b8f86');
         ctx.strokeStyle = 'rgba(0,0,0,0.3)';
         ctx.lineWidth = 2;
-        for (let x = 310; x < 356; x += 10) {
+        for (let x = 312; x < 358; x += 10) {
           ctx.beginPath();
-          ctx.moveTo(x, 418);
+          ctx.moveTo(x, 422);
           ctx.lineTo(x + 1, 444);
           ctx.stroke();
         }
@@ -428,24 +455,24 @@ export const PART_GFX: Record<PartId, PartGfx> = {
 
   steering: (() => {
     const path = new Path2D();
-    path.ellipse(440, 352, 9, 28, -0.35, 0, Math.PI * 2);
+    path.ellipse(448, 356, 9, 26, -0.4, 0, Math.PI * 2);
     return {
       id: 'steering' as PartId,
       path,
-      center: [440, 352] as [number, number],
+      center: [448, 356] as [number, number],
       draw(ctx: Ctx) {
         ctx.strokeStyle = '#2a2b2e';
         ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(440, 352);
-        ctx.lineTo(408, 372);
+        ctx.moveTo(448, 356);
+        ctx.lineTo(418, 376);
         ctx.stroke();
         ctx.strokeStyle = '#111214';
         ctx.lineWidth = 7;
         ctx.beginPath();
-        ctx.ellipse(440, 352, 9, 28, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(448, 356, 9, 26, -0.4, 0, Math.PI * 2);
         ctx.stroke();
-        circle(ctx, 440, 352, 8, '#2f3135');
+        circle(ctx, 448, 356, 8, '#2f3135');
       },
     };
   })(),
@@ -490,9 +517,9 @@ export const HIT_ORDER: PartId[] = [
   'wheelFront',
   'wheelRear',
   'mirror',
+  'headlight',
   'hood',
   'tailgate',
-  'headlight',
   'taillight',
   'frontBumper',
   'rearBumper',
@@ -562,6 +589,7 @@ export function drawCar(ctx: Ctx, view: CarView): void {
   }
 
   // shell
+  const BODY_PATH = BODY_PATHS[bodyStyle];
   fill(ctx, BODY_PATH, paint(ctx));
   ctx.save();
   ctx.clip(BODY_PATH);
@@ -574,17 +602,27 @@ export function drawCar(ctx: Ctx, view: CarView): void {
     ctx.fill();
   }
   ctx.restore();
-  glassWindow(ctx, QUARTER_WINDOW, 735);
-  // pillars
-  fill(ctx, poly('M570,296 L582,296 L582,378 L570,378 Z'), '#0f1513');
-  fill(ctx, poly('M694,294 L704,294 L706,378 L698,378 Z'), '#0f1513');
-  // beltline crease
-  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  glassWindow(ctx, QUARTER_WINDOWS[bodyStyle], 735);
+  if (bodyStyle === 'sedan') {
+    // raked rear window seen edge-on, and the short boot deck behind it
+    fill(ctx, poly('M712,298 Q716,296 720,300 L784,365 L772,364 L708,302 Z'), GLASS);
+  }
+  // window surrounds and B pillar (satin black)
+  fill(ctx, poly('M570,302 L582,302 L582,384 L570,384 Z'), '#0f1513');
+  ctx.strokeStyle = '#0f1513';
+  ctx.lineWidth = 2.5;
+  ctx.stroke(QUARTER_WINDOWS[bodyStyle]);
+  // shoulder line and the black side rubbing strip
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(170, 404);
+  ctx.moveTo(214, 408);
   ctx.lineTo(878, 392);
   ctx.stroke();
+  fill(ctx, poly('M340,425 L380,424 L382,432 L342,433 Z'), '#141617');
+  fill(ctx, poly('M768,422 L836,420 L836,428 L770,429 Z'), '#141617');
+  // fuel flap
+  outline(ctx, rr(744, 396, 20, 18, 3), 'rgba(0,0,0,0.35)', 1.2);
   outline(ctx, BODY_PATH, 'rgba(0,0,0,0.5)', 2);
 
   // engine bay cut-away once the hood is gone
@@ -599,7 +637,7 @@ export function drawCar(ctx: Ctx, view: CarView): void {
   // interior once a door is gone
   if (!view.present('frontDoor')) {
     fill(ctx, FRONT_OPENING, '#141518');
-    fill(ctx, poly('M362,380 L418,358 L428,402 L370,412 Z'), '#24262a');
+    fill(ctx, poly('M372,386 L428,366 L438,406 L380,414 Z'), '#24262a');
     fill(ctx, rr(440, 442, 130, 20, 3), '#1d1f22');
   }
   if (!view.present('rearDoor')) {
@@ -613,7 +651,7 @@ export function drawCar(ctx: Ctx, view: CarView): void {
   };
   // back to front
   for (const id of ['gearbox', 'engine', 'radiator', 'battery', 'rearSeat', 'frontSeats', 'steering'] as PartId[]) draw(id);
-  for (const id of ['exhaust', 'catalyst', 'frontDoor', 'rearDoor', 'frontBumper', 'rearBumper', 'headlight', 'taillight', 'tailgate', 'hood', 'mirror'] as PartId[]) draw(id);
+  for (const id of ['exhaust', 'catalyst', 'frontDoor', 'rearDoor', 'frontBumper', 'rearBumper', 'taillight', 'tailgate', 'hood', 'headlight', 'mirror'] as PartId[]) draw(id);
 
   // hubs where wheels used to be
   for (const [id, x] of [['wheelFront', WHEEL_X.front], ['wheelRear', WHEEL_X.rear]] as [PartId, number][]) {

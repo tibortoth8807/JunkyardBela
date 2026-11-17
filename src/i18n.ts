@@ -14,6 +14,9 @@ export interface Dict {
   soundTitle: string;
   footer: string;
   parts: Record<PartId, string>;
+  trunkLid: string;
+  whichBody: string;
+  bodies: { sedan: string; touring: string };
   partsLabel: string;
   hint: string;
   hintDone: string;
@@ -55,7 +58,7 @@ const hu: Dict = {
   title: 'Bontó Béla',
   subtitle: 'E39 bontás',
   intro:
-    'Béla telepére megérkezett egy kiöregedett E39 Touring. Szedd szét alkatrészenként, és nézd, ahogy pörög a pénz jobb fent!',
+    'Béla telepére megérkezett egy kiöregedett E39. Szedd szét alkatrészenként, és nézd, ahogy pörög a pénz jobb fent!',
   rules:
     'Kattints egy alkatrészre, és csavarozd le – minden kattintás egy csavar. Van, ami csak más alkatrészek után jön le, és van, amit óvatosan kell: a lámpák és a tükör megrepednek, ha túl gyorsan kattintgatsz. A kormányban pedig légzsák lakik…',
   start: 'Bontás indul!',
@@ -84,6 +87,9 @@ const hu: Dict = {
     catalyst: 'Katalizátor',
     exhaust: 'Kipufogó',
   },
+  trunkLid: 'Csomagtérfedél',
+  whichBody: 'Melyik karosszéria érkezett?',
+  bodies: { sedan: 'Szedán', touring: 'Touring (kombi)' },
   partsLabel: 'Alkatrész',
   hint: 'Kattints az alkatrészekre a lecsavarozáshoz. Lámpák, tükör: lassan! Kormány előtt nem árt kikötni az akksit.',
   hintDone: 'Kopasz a kaszni. Mehet a présbe!',
@@ -127,7 +133,7 @@ const en: Dict = {
   docTitle: 'Junkyard Béla – E39 teardown',
   title: 'Junkyard Béla',
   subtitle: 'E39 teardown',
-  intro: 'A tired old E39 Touring just rolled into Béla’s yard. Strip it part by part and watch the cash counter roll up top right!',
+  intro: 'A tired old E39 just rolled into Béla’s yard. Strip it part by part and watch the cash counter roll up top right!',
   rules:
     'Click a part to unbolt it – every click is one bolt. Some parts only come off after others, and some need a gentle touch: the lights and the mirror crack if you click too fast. And there is an airbag living in that steering wheel…',
   start: 'Start stripping!',
@@ -156,6 +162,9 @@ const en: Dict = {
     catalyst: 'Catalytic converter',
     exhaust: 'Exhaust',
   },
+  trunkLid: 'Boot lid',
+  whichBody: 'Which body style came in?',
+  bodies: { sedan: 'Sedan', touring: 'Touring (estate)' },
   partsLabel: 'Parts',
   hint: 'Click parts to unbolt them. Lights and mirror: slowly! Better disconnect the battery before the steering wheel.',
   hintDone: 'Bare shell. Off to the press!',
@@ -199,7 +208,7 @@ const de: Dict = {
   docTitle: 'Schrott-Béla – E39 zerlegen',
   title: 'Schrott-Béla',
   subtitle: 'E39 zerlegen',
-  intro: 'Ein müder alter E39 Touring ist auf Bélas Schrottplatz gelandet. Zerleg ihn Teil für Teil und sieh zu, wie oben rechts das Geld hochzählt!',
+  intro: 'Ein müder alter E39 ist auf Bélas Schrottplatz gelandet. Zerleg ihn Teil für Teil und sieh zu, wie oben rechts das Geld hochzählt!',
   rules:
     'Klick auf ein Teil, um es abzuschrauben – jeder Klick ist eine Schraube. Manche Teile gehen erst ab, wenn andere weg sind, und manche brauchen Gefühl: Scheinwerfer und Spiegel springen, wenn du zu schnell klickst. Und im Lenkrad wohnt ein Airbag…',
   start: 'Zerlegen!',
@@ -228,6 +237,9 @@ const de: Dict = {
     catalyst: 'Katalysator',
     exhaust: 'Auspuff',
   },
+  trunkLid: 'Kofferraumdeckel',
+  whichBody: 'Welche Karosserie ist angekommen?',
+  bodies: { sedan: 'Limousine', touring: 'Touring (Kombi)' },
   partsLabel: 'Teile',
   hint: 'Klick auf die Teile, um sie abzuschrauben. Scheinwerfer und Spiegel: langsam! Vor dem Lenkrad lieber die Batterie abklemmen.',
   hintDone: 'Nackte Karosse. Ab in die Presse!',

@@ -19,6 +19,8 @@ import {
   drawYard,
   hitTest,
   nearTest,
+  setBodyStyle,
+  BodyStyle,
 } from './render/draw';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -30,6 +32,8 @@ let lang: Lang = detectLang();
 let T = DICTS[lang];
 
 let game = new Teardown();
+let body: BodyStyle = 'touring';
+const partName = (id: PartId) => (id === 'tailgate' && body === 'sedan' ? T.trunkLid : T.parts[id]);
 let playing = false;
 let startedAt = 0;
 let finishedAt = 0;
@@ -95,7 +99,7 @@ function partAt(x: number, y: number): PartId | null {
 }
 
 function names(ids: PartId[]): string {
-  return ids.map((id) => T.parts[id]).join(', ');
+  return ids.map(partName).join(', ');
 }
 
 function onClick(x: number, y: number): void {
@@ -236,7 +240,7 @@ function updateTip(clientX: number, clientY: number): void {
   const missing = game.missing(hover);
   const def = PARTS.find((p) => p.id === hover)!;
   tip.innerHTML = '';
-  tip.append(`${T.parts[hover]} · ${T.money(def.price)}`);
+  tip.append(`${partName(hover)} · ${T.money(def.price)}`);
   if (missing.length) {
     const small = document.createElement('small');
     small.textContent = T.locked(names(missing));
@@ -398,14 +402,22 @@ $('btn-start').addEventListener('click', () => {
   newGame();
 });
 $('btn-press').addEventListener('click', crush);
-$('btn-restart').addEventListener('click', () => {
+/** Back to the title card, where the body style can be changed for the next car. */
+function toTitle(): void {
   sounds.play('click');
-  newGame();
-});
-$('btn-again').addEventListener('click', () => {
-  sounds.play('click');
-  newGame();
-});
+  playing = false;
+  game = new Teardown();
+  pressStart = 0;
+  airbagStart = 0;
+  shownMoney = 0;
+  flying.length = 0;
+  floaters.length = 0;
+  hide('result-screen');
+  show('title-screen');
+  renderPanel();
+}
+$('btn-restart').addEventListener('click', toTitle);
+$('btn-again').addEventListener('click', toTitle);
 $('btn-share').addEventListener('click', async () => {
   const text = $('share-text').textContent ?? '';
   try {
@@ -437,6 +449,9 @@ function applyLang(next: Lang): void {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
     el.textContent = T[el.dataset.i18n as 'title'];
   });
+  document.querySelectorAll<HTMLElement>('[data-i18n-body]').forEach((el) => {
+    el.textContent = T.bodies[el.dataset.i18nBody as BodyStyle];
+  });
   document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach((b) => {
     b.classList.toggle('active', b.dataset.lang === lang);
     b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
@@ -453,8 +468,24 @@ document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach((button) =>
   }),
 );
 
+function applyBody(next: BodyStyle): void {
+  body = next;
+  setBodyStyle(body);
+  document.querySelectorAll<HTMLButtonElement>('.body-btn').forEach((b) => {
+    b.classList.toggle('active', b.dataset.body === body);
+    b.setAttribute('aria-checked', String(b.dataset.body === body));
+  });
+}
+document.querySelectorAll<HTMLButtonElement>('.body-btn').forEach((button) =>
+  button.addEventListener('click', () => {
+    sounds.play('click');
+    applyBody(button.dataset.body as BodyStyle);
+  }),
+);
+
+applyBody(body);
 applyLang(lang);
 requestAnimationFrame(frame);
 
 // read-only hook for automated browser tests
-(window as unknown as { __bela: unknown }).__bela = { game: () => game, gfx: PART_GFX };
+(window as unknown as { __bela: unknown }).__bela = { game: () => game, gfx: PART_GFX, body: () => body };
