@@ -1,5 +1,7 @@
 # Bontó Béla – E39 bontás
 
+### ▶️ [Play it in the browser](https://tibortoth8807.github.io/JunkyardBela/)
+
 Böngészős minijáték: Béla bontótelepére megérkezett egy kiöregedett E39 – szedán vagy Touring, te választod. Szedd szét alkatrészenként, és nézd, ahogy a GTA-stílusú pénzszámláló pörög jobb fent. Magyarul, angolul és németül is játszható.
 
 | Touring | Szedán |
